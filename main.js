@@ -1,171 +1,120 @@
 document.addEventListener("DOMContentLoaded", function() {
-    
-    // ==========================================
-    // 1. LOGIC KÉO THẢ MENU
-    // ==========================================
+    // 1. KÉO THẢ MENU
     const menuHandle = document.getElementById('menuHandle');
     const menuOptions = document.getElementById('menuOptions');
     let isDraggingMenu = false, startX, startY, currentX = 0, currentY = 0;
 
     if (menuHandle) {
         menuHandle.addEventListener('touchstart', (e) => {
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
-            isDraggingMenu = true;
+            startX = e.touches[0].clientX; startY = e.touches[0].clientY; isDraggingMenu = true;
         }, {passive: true});
-
         menuHandle.addEventListener('mousedown', (e) => {
-            startX = e.clientX;
-            startY = e.clientY;
-            isDraggingMenu = true;
+            startX = e.clientX; startY = e.clientY; isDraggingMenu = true;
         });
-
         document.addEventListener('touchmove', (e) => {
             if (!isDraggingMenu) return;
-            let dx = e.touches[0].clientX - startX;
-            let dy = e.touches[0].clientY - startY;
-            currentX += dx;
-            currentY += dy;
+            let dx = e.touches[0].clientX - startX; let dy = e.touches[0].clientY - startY;
+            currentX += dx; currentY += dy;
             menuHandle.style.transform = `translate(${currentX}px, ${currentY}px)`;
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
+            startX = e.touches[0].clientX; startY = e.touches[0].clientY;
         }, {passive: true});
-
         document.addEventListener('mousemove', (e) => {
             if (!isDraggingMenu) return;
-            let dx = e.clientX - startX;
-            let dy = e.clientY - startY;
-            currentX += dx;
-            currentY += dy;
+            let dx = e.clientX - startX; let dy = e.clientY - startY;
+            currentX += dx; currentY += dy;
             menuHandle.style.transform = `translate(${currentX}px, ${currentY}px)`;
-            startX = e.clientX;
-            startY = e.clientY;
+            startX = e.clientX; startY = e.clientY;
         });
-
         document.addEventListener('touchend', () => { isDraggingMenu = false; });
         document.addEventListener('mouseup', () => { isDraggingMenu = false; });
-
         menuHandle.addEventListener('click', () => {
-            if (!isDraggingMenu) {
-                menuOptions.classList.toggle('active');
-            }
+            if (!isDraggingMenu) menuOptions.classList.toggle('active');
         });
     }
 
-    // ==========================================
-    // 2. LOGIC KÉO THẢ TOOL HŨ & MD5
-    // ==========================================
+    // 2. KÉO THẢ TOOL
     function makeDraggable(wrapperId, uiId) {
         const wrapper = document.getElementById(wrapperId);
         const ui = document.getElementById(uiId);
         if (!wrapper || !ui) return;
-
         let isDragging = false, startX, startY, initialX, initialY;
-
         wrapper.addEventListener('touchstart', (e) => {
             startX = e.touches[0].clientX; startY = e.touches[0].clientY;
-            initialX = ui.offsetLeft; initialY = ui.offsetTop;
-            isDragging = true;
+            initialX = ui.offsetLeft; initialY = ui.offsetTop; isDragging = true;
         }, {passive: true});
-
         wrapper.addEventListener('mousedown', (e) => {
             startX = e.clientX; startY = e.clientY;
-            initialX = ui.offsetLeft; initialY = ui.offsetTop;
-            isDragging = true;
+            initialX = ui.offsetLeft; initialY = ui.offsetTop; isDragging = true;
         });
-
         document.addEventListener('touchmove', (e) => {
             if(!isDragging) return;
             let dx = e.touches[0].clientX - startX; let dy = e.touches[0].clientY - startY;
             ui.style.left = (initialX + dx) + 'px'; ui.style.top = (initialY + dy) + 'px';
         }, {passive: false});
-
         document.addEventListener('mousemove', (e) => {
             if(!isDragging) return;
             let dx = e.clientX - startX; let dy = e.clientY - startY;
             ui.style.left = (initialX + dx) + 'px'; ui.style.top = (initialY + dy) + 'px';
         });
-
         document.addEventListener('touchend', () => isDragging = false);
         document.addEventListener('mouseup', () => isDragging = false);
     }
-
     makeDraggable('drag-handle-hu', 'tool-ui');
     makeDraggable('drag-handle-md5', 'tool-ui-md5');
 
-    // ==========================================
-    // 3. LOGIC ẨN/HIỆN TOOL
-    // ==========================================
+    // 3. ẨN/HIỆN
     window.toggleMenuPanel = function(id, btn) {
         const el = document.getElementById(id);
         if (el.style.display === 'none') { el.style.display = 'flex'; btn.innerText = '[-]'; } 
         else { el.style.display = 'none'; btn.innerText = '[+]'; }
     };
-
     window.toggleOneTool = function(uiId, btnId) {
         const ui = document.getElementById(uiId);
         const btn = document.getElementById(btnId);
         if (ui.style.display === 'none' || ui.style.display === '') { ui.style.display = 'flex'; btn.classList.add('active'); } 
         else { ui.style.display = 'none'; btn.classList.remove('active'); }
     };
-
     window.toggleToolVisibility = function() {
         const uiHu = document.getElementById('tool-ui');
         const uiMd5 = document.getElementById('tool-ui-md5');
         if (uiHu.style.display !== 'none') { uiHu.style.display = 'none'; uiMd5.style.display = 'none'; } 
         else { uiHu.style.display = 'flex'; uiMd5.style.display = 'flex'; }
     };
-
     window.selectRatio = function(type, val) {
         document.querySelectorAll('.btn-ratio').forEach(b => b.classList.remove('selected'));
         document.getElementById('btn-' + type).classList.add('selected');
     };
-
     window.applyRatioToGame = function() {
         let msg = document.getElementById('ratio-status-msg');
         msg.innerText = '✅ Đã áp dụng tỷ lệ vào game!';
         setTimeout(() => { msg.innerText = ''; }, 3000);
     };
 
-    // ==========================================
-    // 4. CRACK CHECK KEY
-    // ==========================================
+    // 4. CHECK KEY (CRACK)
     window.verifyKey = function(isAuto) {
         let keyInput = document.getElementById('activation-key').value.trim();
         let keyMsg = document.getElementById('key-msg');
         
-        if (keyMsg) {
+        setTimeout(() => {
             keyMsg.innerText = "✅ Kích hoạt thành công!";
             keyMsg.style.color = "#00ff66";
-        }
-        
-        // Ẩn form đăng nhập, hiện tool
-        document.getElementById('key-input-container').style.display = 'none';
-        document.getElementById('info-panel-menu').style.display = 'flex';
-        document.getElementById('tool-locked-content').style.display = 'block';
-        
-        // Điền thông tin fake
-        document.getElementById('infoKeyStr').innerText = keyInput ? keyInput.toUpperCase() : 'MINHBEOSTORE';
-        document.getElementById('infoHsd').innerText = 'VĨNH VIỄN';
-        
-        // Hiện 2 cục tool
-        document.getElementById('tool-ui').style.display = 'flex';
-        document.getElementById('tool-ui-md5').style.display = 'flex';
-
-        // Bắt đầu chạy thuật toán
-        startSimulation();
+            document.getElementById('key-input-container').style.display = 'none';
+            document.getElementById('info-panel-menu').style.display = 'flex';
+            document.getElementById('tool-locked-content').style.display = 'block';
+            document.getElementById('infoKeyStr').innerText = keyInput ? keyInput.toUpperCase() : 'MINHBEOSTORE';
+            document.getElementById('infoHsd').innerText = 'VĨNH VIỄN';
+            document.getElementById('tool-ui').style.display = 'flex';
+            document.getElementById('tool-ui-md5').style.display = 'flex';
+            startSimulation();
+        }, 500);
     };
+    window.logoutKey = function() { location.reload(); };
 
-    window.logoutKey = function() {
-        location.reload();
-    };
-
-    // ==========================================
-    // 5. THUẬT TOÁN CHẠY PHIÊN TÀI XỈU
-    // ==========================================
+    // 5. THUẬT TOÁN
     let timeLeft = 25;
     let isShowingResult = false;
     let huWin = 0, huLose = 0, md5Win = 0, md5Lose = 0;
+    let simInterval = null;
 
     function startNewSession() {
         isShowingResult = false;
@@ -258,23 +207,17 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function startSimulation() {
         startNewSession();
-        // Đảm bảo không tạo ra nhiều vòng lặp trùng lặp nếu bấm nhiều lần
-        if (window.simulationInterval) clearInterval(window.simulationInterval);
-        window.simulationInterval = setInterval(tickTimer, 1000);
+        if (simInterval) clearInterval(simInterval);
+        simInterval = setInterval(tickTimer, 1000);
     }
 
-    // ==========================================
-    // 6. TỰ ĐỘNG CHẠY KHI VỪA MỞ TOOL
-    // ==========================================
-    // Nếu người dùng đã bấm nút Đăng nhập, nó sẽ gọi verifyKey. 
-    // Tao tự động giả lập bấm nút sau 1 giây để vào luôn (nếu mày muốn)
+    // Tự động chạy sau 1 giây
     setTimeout(() => {
         let btn = document.getElementById('btn-login-text');
         if (btn) {
             let keyInput = document.getElementById('activation-key');
             if (keyInput && !keyInput.value) keyInput.value = 'minhbeostore';
-            btn.click();
+            window.verifyKey(true);
         }
     }, 1000);
-    
 });
