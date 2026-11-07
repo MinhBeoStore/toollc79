@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <title>MinhiOS - Hệ thống AI Tài Xỉu LC79 VIP</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #0b0614; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        #main-app { width: 100%; height: 100%; position: relative; display: block; }
+        #game-frame { width: 100%; height: 100%; border: none; position: absolute; top: 0; left: 0; z-index: 1; }
+        
+        #game-fallback { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; background: #111; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; }
+        .fallback-box { background: rgba(0, 0, 0, 0.85); border: 1px solid #00ffff; padding: 25px; border-radius: 14px; box-shadow: 0 0 20px rgba(0, 255, 255, 0.3); max-width: 320px; }
+        .fallback-box p { color: #fff; font-size: 0.95rem; margin-bottom: 18px; }
+        .btn-open-game { display: inline-block; background: linear-gradient(90deg, #ff66b2, #00ffff); color: #000; padding: 12px 20px; border-radius: 8px; text-decoration: none; font-weight: 900; font-size: 0.9rem; }
+
+        /* --- MENU VIP MINHIOS --- */
+        .menu-container { position: absolute; top: 15px; right: 15px; z-index: 9999; }
+        .hamburger {
+            background: linear-gradient(135deg, rgba(20, 10, 30, 0.95), rgba(5, 2, 10, 0.95));
+            border: 1.5px solid #00ffff; padding: 8px 12px; border-radius: 12px; cursor: move;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.4), inset 0 0 8px rgba(0, 255, 255, 0.2);
+            color: #00ffff; font-weight: 900; font-size: 13px; letter-spacing: 0.5px; line-height: 1.2;
+            display: flex; align-items: center; gap: 6px; touch-action: none; user-select: none; text-shadow: 0 0 8px #00ffff; transition: all 0.2s ease;
+        }
+        .hamburger svg { width: 16px; height: 16px; fill: #00ffff; filter: drop-shadow(0 0 5px #00ffff); }
+        .hamburger:active { transform: scale(0.95); box-shadow: 0 0 20px #ff66b2; border-color: #ff66b2; color: #ff66b2; }
+
+        .menu-dropdown {
+            display: none; position: absolute; top: 55px; right: 0; background: rgba(12, 5, 20, 0.96);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1.5px solid #ff66b2;
+            border-radius: 14px; width: 270px; overflow: hidden;
+            box-shadow: 0 8px 25px rgba(255, 102, 178, 0.4), inset 0 0 10px rgba(255, 102, 178, 0.15);
+            animation: menuFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .menu-dropdown.active { display: block; }
+        @keyframes menuFadeIn { from { opacity: 0; transform: translateY(-8px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+        .menu-header-title { background: linear-gradient(90deg, rgba(255, 102, 178, 0.2), rgba(0, 255, 255, 0.2)); color: #00ffff; font-size: 10px; font-weight: 900; text-transform: uppercase; text-align: center; padding: 6px; letter-spacing: 1.5px; border-bottom: 1px solid rgba(255, 102, 178, 0.3); text-shadow: 0 0 5px #00ffff; }
+
+        /* Khung Đăng Nhập */
+        .key-panel { padding: 10px 12px; background: rgba(0, 0, 0, 0.7); border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex; flex-direction: column; gap: 6px; }
+        .key-panel label { color: #ff66b2; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+        .key-input-row { display: flex; gap: 6px; }
+        .key-input-row input { flex: 1; background: rgba(0, 0, 0, 0.8); border: 1px solid rgba(0, 255, 255, 0.4); border-radius: 6px; padding: 6px 8px; color: #fff; font-size: 0.75rem; outline: none; }
+        .key-input-row input:focus { border-color: #ff66b2; }
+        .btn-active-key { background: linear-gradient(90deg, #ff66b2, #00ffff); border: none; border-radius: 6px; padding: 6px 10px; color: #0b0614; font-weight: 900; font-size: 0.72rem; cursor: pointer; text-transform: uppercase; white-space: nowrap; }
+        .key-msg { font-size: 0.68rem; font-weight: 700; min-height: 1.2em; line-height: 1.3; }
+        
+        .loading-progress-container { display: none; width: 100%; background: rgba(0, 0, 0, 0.5); border-radius: 4px; height: 6px; margin-top: 4px; overflow: hidden; border: 1px solid #00ffff; }
+        .loading-progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #00ffff, #ff66b2); transition: width 0.1s linear; }
+
+        /* Bảng INFO KEY */
+        .info-panel-menu { padding: 10px 12px; background: rgba(0, 0, 0, 0.7); border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: none; flex-direction: column; gap: 6px; }
+        .info-panel-menu .title { color: #00ffff; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; text-shadow: 0 0 5px rgba(0,255,255,0.5); border-bottom: 1px dashed rgba(0,255,255,0.3); padding-bottom: 4px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .info-panel-menu .row { display: flex; justify-content: space-between; font-size: 0.7rem; color: #ccc; font-weight: bold; }
+        .info-panel-menu .row span { color: #fff; font-family: monospace; font-size: 0.75rem; }
+        .btn-logout { background: linear-gradient(90deg, #ff3366, #ff66b2); border: none; border-radius: 6px; padding: 6px 10px; color: #fff; font-weight: 900; font-size: 0.72rem; cursor: pointer; text-transform: uppercase; margin-top: 5px; width: 100%; }
+        
+        .btn-minimize { background: none; border: none; color: #fff; font-size: 14px; font-weight: bold; cursor: pointer; outline: none; padding: 0 5px; font-family: monospace; }
+        
+        .promo-notice { padding: 8px 12px; background: rgba(255, 102, 178, 0.1); color: #ffd700; font-size: 0.72rem; font-weight: 700; text-align: center; border-bottom: 1px solid rgba(255, 102, 178, 0.2); line-height: 1.3; text-shadow: 0 0 5px rgba(255, 215, 0, 0.4); }
+
+        .tool-locked-content { display: none; }
+        .stats-panel { padding: 8px 12px; background: rgba(0, 0, 0, 0.65); border-bottom: 1px solid rgba(255, 255, 255, 0.1); font-size: 0.72rem; color: #fff; display: flex; flex-direction: column; gap: 6px; }
+        .stats-section-title { color: #ff66b2; font-weight: 900; font-size: 0.75rem; border-bottom: 1px dashed rgba(255, 102, 178, 0.3); padding-bottom: 2px; text-shadow: 0 0 5px rgba(255,102,178,0.5); }
+        .stats-row { display: flex; justify-content: space-between; align-items: center; font-weight: 700; padding-left: 4px; }
+        .stat-win { color: #00ff66; text-shadow: 0 0 5px rgba(0,255,102,0.5); }
+        .stat-lose { color: #ff3366; text-shadow: 0 0 5px rgba(255,51,102,0.5); }
+        .stat-rate { color: #ffd700; text-shadow: 0 0 5px rgba(255,215,0,0.5); }
+
+        .ratio-panel { padding: 10px 12px; background: rgba(0, 0, 0, 0.75); border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex; flex-direction: column; gap: 8px; }
+        .ratio-title { color: #00ffff; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; text-shadow: 0 0 5px rgba(0,255,255,0.5); }
+        .ratio-buttons-row { display: flex; gap: 6px; }
+        .btn-ratio { flex: 1; background: rgba(0, 0, 0, 0.8); border: 1px solid rgba(255, 102, 178, 0.4); border-radius: 6px; padding: 6px 4px; color: #fff; font-size: 0.7rem; font-weight: 800; cursor: pointer; text-align: center; transition: all 0.2s; }
+        .btn-ratio.selected { background: linear-gradient(90deg, #ff66b2, #00ffff); color: #0b0614; border-color: #00ffff; box-shadow: 0 0 10px rgba(0, 255, 255, 0.5); }
+        .btn-apply-ratio { width: 100%; background: linear-gradient(90deg, #00ff66, #00ffff); border: none; border-radius: 6px; padding: 7px; color: #0b0614; font-weight: 900; font-size: 0.72rem; cursor: pointer; text-transform: uppercase; box-shadow: 0 0 10px rgba(0, 255, 102, 0.3); }
+        .ratio-status-msg { font-size: 0.65rem; color: #00ff66; text-align: center; font-weight: 700; min-height: 1em; }
+
+        .menu-item { padding: 10px 14px; color: #fff; text-align: left; cursor: pointer; border-bottom: 1px solid rgba(255, 255, 255, 0.08); font-weight: 700; font-size: 0.8rem; display: flex; align-items: center; justify-content: space-between; text-decoration: none; transition: background 0.2s, color 0.2s; }
+        .menu-item.contact-admin { background: rgba(0, 255, 255, 0.08); color: #00ffff; justify-content: flex-start; gap: 10px; }
+        .contact-logo { width: 20px; height: 20px; border-radius: 4px; object-fit: cover; flex-shrink: 0; }
+        .menu-item:hover { background: rgba(0, 255, 255, 0.2); color: #00ffff; }
+        .menu-item.active { background: linear-gradient(90deg, rgba(255, 102, 178, 0.3), rgba(0, 255, 255, 0.1)); color: #ff66b2; border-left: 3px solid #ff66b2; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #00ff66; box-shadow: 0 0 8px #00ff66; flex-shrink: 0; }
+        .menu-item.active .status-dot { background: #ff66b2; box-shadow: 0 0 8px #ff66b2; }
+
+        /* Giao diện Tool Hũ & MD5 */
+        #tool-ui, #tool-ui-md5 { position: fixed; z-index: 9998; pointer-events: none; width: 45vw; min-width: 260px; max-width: 420px; display: none; align-items: center; }
+        #tool-ui { top: 15%; left: 5%; }
+        #tool-ui-md5 { top: 52%; left: 5%; }
+        
+        .tool-wrapper { display: flex; align-items: center; width: 100%; pointer-events: auto; cursor: grab; touch-action: none; user-select: none; }
+        .tool-wrapper:active { cursor: grabbing; }
+        .character-img { width: 38%; height: auto; display: block; pointer-events: none; filter: drop-shadow(0 0 8px rgba(255, 102, 178, 0.6)); flex-shrink: 0; z-index: 2; }
+        
+        .result-box-container { position: relative; width: 65%; margin-left: -5%; background: rgba(15, 5, 20, 0.88); border: 2px solid #ff66b2; border-radius: 12px; padding: 10px 8px; box-shadow: 0 0 15px rgba(255, 102, 178, 0.5), inset 0 0 10px rgba(255, 102, 178, 0.2); display: flex; flex-direction: column; align-items: center; text-align: center; z-index: 1; }
+        .box-brand-title { font-size: 9px; color: #ff66b2; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; margin: 0; text-shadow: 0 0 5px #ff66b2; }
+        
+        .tool-content { display: flex; flex-direction: column; align-items: center; width: 100%; margin-top: 5px; }
+        .session-id { color: #ffd700; font-size: clamp(0.6rem, 1.5vw, 0.8rem); font-weight: bold; margin-bottom: 2px; text-shadow: 0 0 5px #ffd700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+        .result-text { font-size: clamp(1.2rem, 3.2vw, 2.2rem); font-weight: 900; text-transform: uppercase; margin: 2px 0; letter-spacing: 1.5px; line-height: 1.1; }
+        .result-text.xiu { color: #00ffff; text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff; }
+        .result-text.tai { color: #ff3366; text-shadow: 0 0 10px #ff3366, 0 0 20px #ff3366; }
+        .result-text.loading { font-size: clamp(0.7rem, 1.8vw, 1rem); color: #fff; animation: blink 1s infinite; }
+        .progress-wrapper { width: 90%; background: rgba(0, 0, 0, 0.6); border-radius: 6px; height: 6px; margin-top: 4px; overflow: hidden; border: 1px solid #ff66b2; }
+        .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #ff66b2, #00ffff); transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+        .confidence-text { color: #fff; font-size: clamp(0.55rem, 1.3vw, 0.75rem); font-weight: 600; margin-top: 4px; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    </style>
+  </head>
+  <body>
+    <div id="main-app">
+      <iframe id="game-frame" src="https://play.lc79.bet/" onerror="showFallback()"></iframe>
+      <div id="game-fallback">
+        <div class="fallback-box">
+          <p>Cổng game LC79 yêu cầu mở ở tab riêng để đồng bộ tối ưu.</p>
+          <a class="btn-open-game" href="https://play.lc79.bet/" target="_blank">MỞ GAME TẢI RIÊNG TAB</a>
+        </div>
+      </div>
+      
+      <div class="menu-container">
+        <div class="hamburger" id="menuHandle" role="button">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+          </svg>
+          <span>MinhiOS</span>
+        </div>
+        <div class="menu-dropdown" id="menuOptions">
+          <div class="menu-header-title">MinhiOS System</div>
+          
+          <div class="key-panel" id="key-input-container">
+            <label>
+              Kích Hoạt Tool
+              <span style="font-size:0.6rem; color:#00ffff;" id="displayDeviceId">Loading...</span>
+            </label>
+            <div class="key-input-row">
+              <input type="text" id="activation-key" placeholder="Nhập key..." />
+              <!-- Nút này dùng onclick riêng để bắt sự kiện -->
+              <button class="btn-active-key" id="btn-login-text" onclick="handleLoginClick()">ĐĂNG NHẬP</button>
+            </div>
+            <div class="key-msg" id="key-msg"></div>
+            <div class="loading-progress-container" id="loading-progress-container">
+              <div class="loading-progress-bar" id="loading-progress-bar"></div>
+            </div>
+            <a href="https://t.me/minhiosne" style="display:block; margin-top:8px; font-size:0.7rem; color:#ccc; text-decoration:none; text-align:center;" target="_blank">
+              Chưa có Key? <span style="color:#00ff66; border-bottom:1px solid #00ff66;">Liên hệ Admin</span>
+            </a>
+          </div>
+          
+          <div class="info-panel-menu" id="info-panel-menu">
+            <div class="title">
+              <span>INFO BẢN QUYỀN</span>
+              <button class="btn-minimize" onclick="toggleMenuPanel('info-content-wrap', this)">[-]</button>
+            </div>
+            <div id="info-content-wrap" style="display: flex; flex-direction: column; gap: 6px;">
+              <div class="row">KEY: <span id="infoKeyStr">...</span></div>
+              <div class="row">HSD: <span id="infoHsd">...</span></div>
+              <button class="btn-logout" onclick="logoutKey()">ĐĂNG XUẤT MÁY NÀY</button>
+            </div>
+          </div>
+          
+          <div class="tool-locked-content" id="tool-locked-content">
+            <div class="stats-panel">
+              <div class="stats-section-title">📊 Bàn Hũ</div>
+              <div class="stats-row"><span>Chuẩn / Sai:</span><span><strong class="stat-win" id="hu-win">0</strong> / <strong class="stat-lose" id="hu-lose">0</strong></span></div>
+              <div class="stats-row"><span>Tỷ lệ chuẩn:</span><span class="stat-rate" id="hu-rate">0%</span></div>
+            </div>
+            <div class="stats-panel">
+              <div class="stats-section-title">📊 Bàn MD5</div>
+              <div class="stats-row"><span>Chuẩn / Sai:</span><span><strong class="stat-win" id="md5-win">0</strong> / <strong class="stat-lose" id="md5-lose">0</strong></span></div>
+              <div class="stats-row"><span>Tỷ lệ chuẩn:</span><span class="stat-rate" id="md5-rate">0%</span></div>
+            </div>
+            <div class="ratio-panel">
+              <div class="ratio-title">⚡ Chọn Tỷ Lệ Ăn</div>
+              <div class="ratio-buttons-row">
+                <button class="btn-ratio" id="btn-low" onclick="selectRatio('low', 70)">Thấp</button>
+                <button class="btn-ratio selected" id="btn-mid" onclick="selectRatio('mid', 85)">Trung Bình</button>
+                <button class="btn-ratio" id="btn-high" onclick="selectRatio('high', 98)">Cao</button>
+              </div>
+              <button class="btn-apply-ratio" onclick="applyRatioToGame()">Áp Dụng Vào Game</button>
+              <div class="ratio-status-msg" id="ratio-status-msg"></div>
+            </div>
+            <div class="menu-item active" id="btn-hu" onclick="toggleOneTool('tool-ui','btn-hu')"><span>TOOL HŨ</span><div class="status-dot"></div></div>
+            <div class="menu-item active" id="btn-md5" onclick="toggleOneTool('tool-ui-md5','btn-md5')"><span>TOOL MD5</span><div class="status-dot"></div></div>
+            <div class="menu-item" onclick="toggleToolVisibility()" style="background: rgba(255, 51, 102, 0.1); color: #ff3366; justify-content: space-between;"><span>ẨN / HIỆN TOOL</span><span>⚡</span></div>
+          </div>
+          
+          <div class="promo-notice">Tool Giá Chỉ 100.000Đ Dùng Vĩnh Viễn, Mua Key Liên Hệ Admin Bên Dưới🫵🏻</div>
+          <a class="menu-item contact-admin" href="https://t.me/minhiosbanhacks1" target="_blank"><img src="https://files.catbox.moe/4retnf.jpeg" class="contact-logo" /><span>Telegram Admin</span></a>
+          <a class="menu-item contact-admin" href="https://zalo.me/g/rzxoavhhjgyxndl7ajwq" target="_blank"><img src="https://files.catbox.moe/83s842.jpeg" class="contact-logo" /><span>Nhóm Zalo Hỗ Trợ</span></a>
+        </div>
+      </div>
+
+      <div id="tool-ui">
+        <div class="tool-wrapper" id="drag-handle-hu">
+          <img src="https://files.catbox.moe/r1kliq.jpeg" alt="Character" class="character-img" onerror="this.src='https://i.ibb.co/8L3T1QD5/139923-EE-ACA9-4-B76-85-EF-611746-FF96-C2.png'" />
+          <div class="result-box-container">
+            <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed rgba(255, 102, 178, 0.3); padding-bottom: 4px;">
+              <span class="box-brand-title">MinhiOS - Hũ</span>
+              <button class="btn-minimize" onclick="toggleMenuPanel('tool-content-hu', this)" onpointerdown="event.stopPropagation()">[-]</button>
+            </div>
+            <div id="tool-content-hu" class="tool-content">
+              <div class="session-id" id="session-id">#Đang tải...</div>
+              <div class="result-text loading" id="prediction-result">Phân tích...</div>
+              <div class="progress-wrapper"><div class="progress-bar" id="confidence-bar"></div></div>
+              <div class="confidence-text" id="confidence-text">Độ tin cậy: 0%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tool-ui-md5">
+        <div class="tool-wrapper" id="drag-handle-md5">
+          <img src="https://files.catbox.moe/r1kliq.jpeg" alt="Character" class="character-img" onerror="this.src='https://i.ibb.co/8L3T1QD5/139923-EE-ACA9-4-B76-85-EF-611746-FF96-C2.png'" />
+          <div class="result-box-container">
+            <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed rgba(255, 102, 178, 0.3); padding-bottom: 4px;">
+              <span class="box-brand-title">MinhiOS - MD5</span>
+              <button class="btn-minimize" onclick="toggleMenuPanel('tool-content-md5', this)" onpointerdown="event.stopPropagation()">[-]</button>
+            </div>
+            <div id="tool-content-md5" class="tool-content">
+              <div class="session-id" id="session-id-md5">#Đang tải...</div>
+              <div class="result-text loading" id="prediction-result-md5">Phân tích...</div>
+              <div class="progress-wrapper"><div class="progress-bar" id="confidence-bar-md5"></div></div>
+              <div class="confidence-text" id="confidence-text-md5">Độ tin cậy: 0%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- File main.js gốc của mày -->
+    <script src="main.js?v=1794067415"></script>
+
+    <!-- ĐOẠN SCRIPT CRACK KEY -->
+    <script>
+        // Định nghĩa hàm click thay thế, đảm bảo nó chạy trước khi main.js kịp can thiệp
+        window.handleLoginClick = function() {
+            let key = document.getElementById('activation-key').value.trim();
+            let msg = document.getElementById('key-msg');
+
+            if (key.toLowerCase() === 'minhbeostore') {
+                // Key đúng, tiến hành bypass
+                document.getElementById('key-input-container').style.display = 'none';
+                document.getElementById('info-panel-menu').style.display = 'flex';
+                document.getElementById('tool-locked-content').style.display = 'block';
+                
+                document.getElementById('infoKeyStr').innerText = 'MINHBEOSTORE';
+                document.getElementById('infoHsd').innerText = 'VĨNH VIỄN';
+                
+                document.getElementById('tool-ui').style.display = 'flex';
+                document.getElementById('tool-ui-md5').style.display = 'flex';
+                
+                // Kích hoạt logic của main.js nếu có
+                if (typeof startSimulation === 'function') startSimulation();
+            } else {
+                // Nếu nhập key khác, gọi hàm verifyKey gốc của main.js (nếu có)
+                if (typeof window.verifyKey === 'function') {
+                    window.verifyKey(false);
+                } else {
+                    // Nếu không có hàm gốc, báo lỗi
+                    msg.innerText = "Key không hợp lệ!";
+                    msg.style.color = "#ff3366";
+                }
+            }
+        };
+
+        // Ghi đè hàm đăng xuất
+        window.logoutKey = function() {
+            location.reload();
+        };
+    </script>
+  </body>
+</html>
